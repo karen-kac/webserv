@@ -27,6 +27,13 @@ std::string toUpper(const std::string& str) {
 	return result;
 }
 
+// 整数を文字列に変換
+std::string toString(int num) {
+	std::ostringstream oss;
+	oss << num;
+	return oss.str();
+}
+
 // 文字列を指定された区切り文字で分割
 std::vector<std::string> split(const std::string& str, const std::string& delimiter) {
 	std::vector<std::string> tokens;

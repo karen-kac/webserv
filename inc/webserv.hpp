@@ -64,6 +64,7 @@ namespace Utils {
 	std::string trim(const std::string& str);
 	std::string toLower(const std::string& str);
 	std::string toUpper(const std::string& str);
+	std::string toString(int num);
 	std::vector<std::string> split(const std::string& str, const std::string& delimiter);
 	std::string getCurrentTime();
 	std::string getMimeType(const std::string& extension);
