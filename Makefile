@@ -1,27 +1,36 @@
 NAME = webserv
 
+SRCDIR = src
+OBJDIR = obj
+INCDIR = inc
+
+SOURCES = main.cpp \
+		  Server.cpp \
+		  Config.cpp \
+		  Request.cpp \
+		  Response.cpp \
+		  Utils.cpp \
+		  CGI.cpp \
+		  Location.cpp \
+		  HttpParser.cpp
+
+SRCS = $(addprefix $(SRCDIR)/, $(SOURCES))
+OBJS = $(addprefix $(OBJDIR)/, $(SOURCES:.cpp=.o))
+
 CXX = c++
-CXXFLAGS = -Wall -Wextra -Werror -std=c++98
-
-SRC_DIR = src
-OBJ_DIR = obj
-INC_DIR = include
-
-SRCS = $(wildcard $(SRC_DIR)/*.cpp)
-OBJS = $(patsubst $(SRC_DIR)/%.cpp, $(OBJ_DIR)/%.o, $(SRCS))
-DEPS = $(OBJS:.o=.d)
+CXXFLAGS = -Wall -Wextra -Werror -std=c++98 -I$(INCDIR)
 
 all: $(NAME)
 
 $(NAME): $(OBJS)
-	$(CXX) $(CXXFLAGS) -o $@ $^
+	$(CXX) $(CXXFLAGS) $(OBJS) -o $(NAME)
 
-$(OBJ_DIR)/%.o: $(SRC_DIR)/%.cpp
-	@mkdir -p $(OBJ_DIR)
-	$(CXX) $(CXXFLAGS) -MMD -MP -I$(INC_DIR) -c $< -o $@
+$(OBJDIR)/%.o: $(SRCDIR)/%.cpp
+	@mkdir -p $(OBJDIR)
+	$(CXX) $(CXXFLAGS) -c $< -o $@
 
 clean:
-	rm -rf $(OBJ_DIR)
+	rm -rf $(OBJDIR)
 
 fclean: clean
 	rm -f $(NAME)
@@ -29,5 +38,3 @@ fclean: clean
 re: fclean all
 
 .PHONY: all clean fclean re
-
--include $(DEPS)
