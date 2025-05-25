@@ -2,56 +2,66 @@
 
 namespace Utils {
 
+// 先頭・末尾の空白・改行・タブを除去
 std::string trim(const std::string& str) {
+	// 先頭の空白・改行・タブ以外の文字が見つかる位置
 	size_t start = str.find_first_not_of(" \t\r\n");
 	if (start == std::string::npos)
 		return "";
+	// 末尾の空白・改行・タブ以外の文字が見つかる位置
 	size_t end = str.find_last_not_of(" \t\r\n");
 	return str.substr(start, end - start + 1);
 }
 
+// 小文字に変換
 std::string toLower(const std::string& str) {
 	std::string result = str;
 	std::transform(result.begin(), result.end(), result.begin(), ::tolower);
 	return result;
 }
 
+// 大文字に変換
 std::string toUpper(const std::string& str) {
 	std::string result = str;
 	std::transform(result.begin(), result.end(), result.begin(), ::toupper);
 	return result;
 }
 
+// 文字列を指定された区切り文字で分割
 std::vector<std::string> split(const std::string& str, const std::string& delimiter) {
 	std::vector<std::string> tokens;
-	if (str.empty())
+	if (str.empty() || delimiter.empty())
 		return tokens;
-	
+
 	size_t start = 0;
 	size_t pos = 0;
-	
+	// std::string::nposは、findメソッドが見つからない場合の戻り値
+	// intに入れると-1になる
 	while ((pos = str.find(delimiter, start)) != std::string::npos) {
 		if (pos > start) {
 			tokens.push_back(str.substr(start, pos - start));
 		}
 		start = pos + delimiter.length();
 	}
-	
+	// 最後の区切り文字の後ろの文字列があれば追加
 	if (start < str.length()) {
 		tokens.push_back(str.substr(start));
 	}
-	
 	return tokens;
 }
 
+// 現在の時刻を取得
 std::string getCurrentTime() {
+	// UNIX時刻の秒数を取得
 	time_t now = time(0);
+	// UTC（GMT）として変換→HTTPレスポンスの日付と時刻を指定するため
 	struct tm* timeinfo = gmtime(&now);
 	char buffer[80];
 	strftime(buffer, sizeof(buffer), "%a, %d %b %Y %H:%M:%S GMT", timeinfo);
 	return std::string(buffer);
 }
 
+// ファイルの拡張子に応じたMIMEタイプを取得
 std::string getMimeType(const std::string& extension) {
 	std::string ext = toLower(extension);
 	
@@ -84,9 +94,11 @@ std::string getMimeType(const std::string& extension) {
 	else if (ext == ".gz")
 		return "application/gzip";
 	else
+		// 未知の拡張子の場合は、application/octet-streamとして扱う（バイナリデータ）
 		return "application/octet-stream";
 }
 
+// ステータスコードに応じたメッセージを取得
 std::string getStatusMessage(int code) {
 	switch (code) {
 		case 200: return "OK";
@@ -111,19 +123,25 @@ std::string getStatusMessage(int code) {
 	}
 }
 
+// ファイルが存在するかどうかを確認
 bool fileExists(const std::string& path) {
 	struct stat buffer;
+	// ファイル情報を取得
 	return (stat(path.c_str(), &buffer) == 0);
 }
 
+// ディレクトリかどうかを確認
 bool isDirectory(const std::string& path) {
 	struct stat buffer;
 	if (stat(path.c_str(), &buffer) != 0)
 		return false;
+	// ファイルがディレクトリかどうかを確認（マクロ）
 	return S_ISDIR(buffer.st_mode);
 }
 
+// ファイルを読み込む
 std::string readFile(const std::string& path) {
+	// ファイルをバイナリモードで読み込む
 	std::ifstream file(path.c_str(), std::ios::binary);
 	if (!file.is_open())
 		return "";
@@ -133,6 +151,7 @@ std::string readFile(const std::string& path) {
 	return buffer.str();
 }
 
+// 16進数を10進数に変換
 size_t hexToDecimal(const std::string& hex) {
 	size_t result = 0;
 	for (size_t i = 0; i < hex.length(); ++i) {
@@ -149,10 +168,14 @@ size_t hexToDecimal(const std::string& hex) {
 	return result;
 }
 
+// URLエンコードされた文字列をデコードする
+// スペースは+または%20に変換
+// パーセントエンコードされた文字は16進数に変換（%2Fは/）
 std::string urlDecode(const std::string& str) {
 	std::string result;
 	for (size_t i = 0; i < str.length(); ++i) {
 		if (str[i] == '%' && i + 2 < str.length()) {
+			// ％から始まる2文字の16進数を取得
 			std::string hex = str.substr(i + 1, 2);
 			if (hex.find_first_not_of("0123456789abcdefABCDEF") == std::string::npos) {
 				char c = static_cast<char>(hexToDecimal(hex));
@@ -170,7 +193,9 @@ std::string urlDecode(const std::string& str) {
 	return result;
 }
 
+// ディレクトリリスティングを生成（指定されたURIのディレクトリの内容をHTMLで表示）
 std::string generateDirectoryListing(const std::string& path, const std::string& uri) {
+	// ディレクトリリスティングのHTMLを生成
 	std::string html;
 	html += "<!DOCTYPE html>\n";
 	html += "<html>\n<head>\n";
@@ -189,6 +214,7 @@ std::string generateDirectoryListing(const std::string& path, const std::string&
 	html += "<table>\n";
 	html += "<tr><th>Name</th><th>Size</th><th>Last Modified</th></tr>\n";
 	
+	// 新規ディレクトリの場合は、親ディレクトリのURIを取得
 	if (uri != "/") {
 		std::string parentUri = uri;
 		if (parentUri.length() > 1 && parentUri[parentUri.length() - 1] == '/')
@@ -199,19 +225,20 @@ std::string generateDirectoryListing(const std::string& path, const std::string&
 		html += "<tr><td><a href=\"" + parentUri + "\">[Parent Directory]</a></td><td>-</td><td>-</td></tr>\n";
 	}
 	
+	// ディレクトリの内容を読み込む
 	DIR* dir = opendir(path.c_str());
 	if (dir) {
 		struct dirent* entry;
 		while ((entry = readdir(dir)) != NULL) {
+			// ドットから始まるファイルは無視
 			if (entry->d_name[0] == '.')
 				continue;
-			
 			std::string fullPath = path + "/" + entry->d_name;
 			std::string linkUri = uri;
 			if (linkUri[linkUri.length() - 1] != '/')
 				linkUri += "/";
 			linkUri += entry->d_name;
-			
+			// ファイル情報を取得
 			struct stat fileStat;
 			if (stat(fullPath.c_str(), &fileStat) == 0) {
 				std::string name = entry->d_name;
@@ -219,7 +246,7 @@ std::string generateDirectoryListing(const std::string& path, const std::string&
 					name = "[" + name + "]";
 					linkUri += "/";
 				}
-				
+				// ファイルの更新日時を取得
 				char timeStr[80];
 				struct tm* timeinfo = localtime(&fileStat.st_mtime);
 				strftime(timeStr, sizeof(timeStr), "%Y-%m-%d %H:%M", timeinfo);
@@ -229,7 +256,8 @@ std::string generateDirectoryListing(const std::string& path, const std::string&
 					sizeStr << "-";
 				else
 					sizeStr << fileStat.st_size;
-				
+
+				// ディレクトリリスティングのHTMLを生成
 				html += "<tr><td><a href=\"" + linkUri + "\">" + name + "</a></td>";
 				html += "<td>" + sizeStr.str() + "</td>";
 				html += "<td>" + std::string(timeStr) + "</td></tr>\n";
