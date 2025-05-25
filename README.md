@@ -1,134 +1,213 @@
-# Webserv
+# Webserv - HTTPサーバ実装
 
-## 概要
-Webservは、C++ 98で実装したカスタムHTTPサーバーで、WebサーバーおよびHTTPプロトコルの動作原理を深く理解するために設計されています。このプロジェクトでは、クライアントリクエストの処理、静的コンテンツの提供、CGIスクリプトの実行など、様々な機能を持つサーバーを構築します。
+C++98で実装された堅牢なHTTP/1.1サーバ。ノンブロッキングI/O、CGI対応、仮想ホスト機能などを備えた軽量サーバです。
 
-## 機能
+## 🚀 主な機能
 
-### 基本機能
-- HTTP/1.1サーバーの完全実装
-- ノンブロッキングI/Oを使用した複数の同時接続対応
-- GET、POST、DELETEメソッドのサポート
-- 標準的なWebブラウザとの互換性
-- 静的Webサイトコンテンツの提供
-- ファイルアップロード機能
-- デフォルトエラーページ
-- CGI実行のサポート（PHP、Pythonなど）
+- **HTTP/1.1 対応** - 標準に準拠したプロトコル実装  
+- **ノンブロッキングI/O** - `poll()` を用いた効率的な接続処理  
+- **HTTPメソッド対応** - GET / POST / DELETE  
+- **CGI実行機能** - PHP・PythonなどのCGIスクリプト実行に対応  
+- **ファイルアップロード** - `multipart/form-data` のPOSTリクエスト処理  
+- **静的ファイル配信** - HTML / CSS / JS / 画像などの提供  
+- **ディレクトリリスティング** - 自動的なディレクトリ一覧表示  
+- **仮想ホスト対応** - 複数のポートで異なる設定を適用可能  
+- **カスタムエラーページ** - 任意のエラーページを設定可能  
+- **NGINX風設定ファイル** - 柔軟なサーバ設定が可能  
+- **メモリリーク無し** - 安全なメモリ管理を徹底  
 
-### 設定
-- カスタム設定ファイル形式（NGINXに類似）
-- 異なるホスト:ポートの組み合わせでの複数の仮想サーバー
-- ルート固有の設定
-- ディレクトリリスティングコントロール
-- HTTPリダイレクト
-- 複数ポートでのリスニング
-
-## 技術要件
-
-### 依存関係
-- C++98対応のC++コンパイラ
-- 標準C++ライブラリのみ（外部ライブラリやBoostは使用不可）
-
-### システム対応
-- Unixベースのシステム（Linux、macOS）
-- macOSのwrite()処理に対する特別な対応
-
-## ビルド方法
-
-```bash
-# リポジトリをクローン
-git clone <リポジトリURL> webserv
-cd webserv
-
-# サーバーをビルド
-make
-
-# デフォルト設定で実行
-./webserv
-
-# カスタム設定ファイルで実行
-./webserv path/to/config
-```
-
-## 設定ファイル形式
-
-設定ファイルではサーバーの様々な側面を設定できます。基本的な例を以下に示します：
-
-```
-# サーバー設定例
-server {
-    listen 8080;
-    server_name example.com;
-    
-    error_page 404 /404.html;
-    client_max_body_size 10M;
-    
-    location / {
-        root /var/www/html;
-        index index.html;
-        allowed_methods GET POST;
-    }
-    
-    location /upload {
-        root /var/www/uploads;
-        allowed_methods POST;
-        upload_store /var/www/uploads;
-    }
-    
-    location /cgi-bin {
-        root /var/www/cgi-bin;
-        cgi_pass .php /usr/bin/php-cgi;
-        allowed_methods GET POST;
-    }
-}
-
-# 複数のサーバーブロックを定義可能
-server {
-    listen 8081;
-    # ... その他の設定
-}
-```
-
-## 実装詳細
-
-### ノンブロッキングI/O
-サーバーはノンブロッキングI/Oとpoll()（または同等機能）を使用して、スレッドや各接続ごとのフォークを使わずに複数のクライアント接続を同時に処理します。
-
-### CGI処理
-CGIスクリプトに関して：
-- サーバーはファイル拡張子に基づいてリクエストをCGIスクリプトに渡します
-- CGI環境変数はHTTP/1.1仕様に従って設定されます
-- 標準入力と標準出力は適切に処理されます
-
-### エラー処理
-- サーバーは適切なHTTPステータスコードを提供します
-- カスタムエラーページを設定できます
-- クライアント切断を適切に処理します
-
-## テスト
-
-サーバーは以下を使用してテストできます：
-- 標準的なWebブラウザ（Chrome、Firefox、Safariなど）
-- コマンドラインツール（curl、wget）
-- 生のHTTPリクエスト用Telnet
-- カスタムテストスクリプト（Python、Goなどの言語での実装を推奨）
-
-## プロジェクト構造
+## 📁 プロジェクト構成
 
 ```
 webserv/
-├── src/            # ソースコード
-├── include/        # ヘッダーファイル
-├── config/         # 設定ファイル例
-├── www/            # Webコンテンツ例
-├── tests/          # テストスクリプト
-├── Makefile        # ビルド設定
-└── README.md       # このファイル
+├── Makefile                 # ビルド設定
+├── README.md               # このファイル
+├── default.conf            # デフォルトのサーバ設定
+├── inc/                    # ヘッダファイル群
+│   ├── webserv.hpp         
+│   ├── Server.hpp          
+│   ├── Config.hpp          
+│   ├── Request.hpp         
+│   ├── Response.hpp        
+│   ├── Location.hpp        
+│   ├── CGI.hpp             
+│   └── HttpParser.hpp      
+├── src/                    # ソースコード
+│   ├── main.cpp            
+│   ├── Server.cpp          
+│   ├── Config.cpp          
+│   ├── Request.cpp         
+│   ├── Response.cpp        
+│   ├── Location.cpp        
+│   ├── CGI.cpp             
+│   ├── HttpParser.cpp      
+│   └── Utils.cpp           
+└── www/                    # デフォルトのWebルート
+    ├── index.html          
+    ├── test.php            
+    ├── test.py             
+    └── upload/
+        └── index.html      
 ```
 
-## 標準準拠
-- HTTP/1.1 (RFC 2616)
-- C++98標準
-- NGINX風の設定ファイル形式
+## 🛠️ ビルド方法
 
+### 必須環境
 
+- C++98 対応のC++コンパイラ（g++, clang++など）
+- `make` コマンド
+- UNIX系OS（Linux, macOS）
+- 任意：PHP-CGI、Python3（CGIテスト用）
+
+### コンパイル手順
+
+```bash
+# リポジトリをクローン
+git clone <repository-url>
+cd webserv
+
+# ビルド
+make
+
+# 中間ファイル削除
+make clean
+
+# 実行ファイルも含めて削除
+make fclean
+
+# 再ビルド
+make re
+```
+
+## 🚀 使用方法
+
+### 基本実行
+
+```bash
+# デフォルト設定で起動
+./webserv
+
+# 任意の設定ファイルで起動
+./webserv path/to/config.conf
+
+# ヘルプ表示
+./webserv --help
+
+# バージョン表示
+./webserv --version
+```
+
+### 初期セットアップ
+
+初回起動時に以下が作成されます：
+
+1. `./www` ディレクトリ（Webファイル置き場）
+2. `./uploads` ディレクトリ（アップロード先）
+3. `index.html` の初期ページ
+4. `http://localhost:8080` で待機
+
+## 🔍 テスト方法
+
+### 基本テスト
+
+```bash
+curl http://localhost:8080/
+```
+
+### CGIスクリプトの確認
+
+```bash
+# PHP
+curl http://localhost:8080/test.php
+
+# Python
+curl http://localhost:8080/test.py
+```
+
+### ファイルアップロード
+
+```bash
+curl -X POST -F "file=@example.txt" http://localhost:8080/upload
+```
+
+### ブラウザでの確認
+
+`http://localhost:8080` にアクセスしてください。
+
+## ⚙️ 設定ファイル構文（NGINX風）
+
+```nginx
+server {
+    listen 0.0.0.0:8080;
+    server_name localhost;
+    root ./www;
+    index index.html index.php;
+    client_max_body_size 10M;
+
+    error_page 404 /error_pages/404.html;
+    error_page 500 502 503 504 /error_pages/50x.html;
+
+    location / {
+        root ./www;
+        allow_methods GET POST DELETE;
+        autoindex on;
+    }
+
+    location ~ \.php$ {
+        root ./www;
+        allow_methods GET POST;
+        cgi_extension .php /usr/bin/php-cgi;
+    }
+
+    location /upload {
+        root ./www;
+        allow_methods GET POST;
+        upload_path ./uploads/;
+        client_max_body_size 50M;
+    }
+}
+```
+
+## 🔧 よくあるトラブルと対処法
+
+### 1. ポートが使用中
+
+```bash
+lsof -i :8080
+# → 他プロセスが使用中か確認、必要に応じて設定変更
+```
+
+### 2. CGIスクリプトが動作しない
+
+- `php-cgi` や `python3` がインストールされているか確認
+- `chmod +x` で実行権限を付与
+- configの `cgi_extension` を確認
+
+### 3. アップロードできない
+
+- `uploads/` ディレクトリの権限を確認
+- `client_max_body_size` の設定を確認
+- ディレクトリの存在確認
+
+### 4. パーミッションエラー
+
+```bash
+chmod 755 ./www ./uploads
+chmod 644 ./www/*
+```
+
+## 🔒 セキュリティ考慮事項
+
+- HTTPヘッダーのバリデーション
+- パストラバーサル防止
+- アップロード制限
+- CGIの制限実行
+- タイムアウトやボディサイズの制限
+
+## 🧪 HTTP 準拠内容
+
+- HTTP/1.1 準拠
+- Keep-Alive対応
+- Chunked Transfer Encoding
+- Content-Length管理
+- ステータスコード・ヘッダー・URI解析対応
