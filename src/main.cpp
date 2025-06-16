@@ -66,9 +66,17 @@ int main (int argc, char* argv[])
 		// ウェルカムメッセージの表示
 		printWelcome();
 		// サーバーの作成と初期化
+		Server server(configPath);
+		if (!server.initialize())
+		{
+			std::cerr << "Error: Failed to initialize server" << std::endl;
+			return 1;
+		}
+		std::cout << "Server initialized successfully" << std::endl;
+		std::cout << "Configuration file: " << configPath << std::endl;
 
 		// サーバーの開始
-
+		server.run();
 	}
 	catch(const std::exception& e)
 	{
