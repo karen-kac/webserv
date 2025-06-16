@@ -22,10 +22,15 @@ void printVersion()
 	std::cout << "Built with C++98 standard" << std::endl;
 }
 
-void printWelcome()
-{
-	std::cout << "Welcome to Webserv" << std::endl;
+void printWelcome() {
+	std::cout << "==========================================" << std::endl;
+	std::cout << "  Webserv - HTTP Server Starting Up      " << std::endl;
+	std::cout << "==========================================" << std::endl;
+	std::cout << "HTTP/1.1 compliant web server" << std::endl;
+	std::cout << "Press Ctrl+C to stop the server" << std::endl;
+	std::cout << "==========================================" << std::endl;
 }
+
 int main (int argc, char* argv[])
 {
 	std::string configPath = DEFAULT_CONFIG;
@@ -48,11 +53,34 @@ int main (int argc, char* argv[])
 		else
 			configPath = arg;
 	}
-
 	if (argc > 2)
 	{
 		std::cerr << "Error:Too many arguments" << std::endl;
 		printUsage(argv[0]);
 		return 1;
 	}
+
+	// （あとで）デフォルトファイルを作成
+	try
+	{
+		// ウェルカムメッセージの表示
+		printWelcome();
+		// サーバーの作成と初期化
+
+		// サーバーの開始
+
+	}
+	catch(const std::exception& e)
+	{
+		std::cerr << "Error: " << e.what() << std::endl;
+		return 1;
+	}
+	catch(...)
+	{
+		std::cerr << "Error: Unknown exception occurred" << std::endl;
+		return 1;
+	}
+	// 正常終了
+	std::cout << std::endl << "Server stopped gracefully" << std::endl;
+	return 0;
 }
