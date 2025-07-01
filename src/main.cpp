@@ -60,7 +60,6 @@ int main (int argc, char* argv[])
 		return 1;
 	}
 
-	// （あとで）デフォルトファイルを作成
 	try
 	{
 		// ウェルカムメッセージの表示
