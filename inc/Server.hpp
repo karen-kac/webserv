@@ -2,9 +2,12 @@
 #define SERVER_HPP
 
 #include "webserv.hpp"
+#include "Config.hpp"
 
 class Server {
 private:
+	Config* _config;
+	std::vector<int> _serverSockets;
 	bool _running;
 
 public:
@@ -17,7 +20,9 @@ public:
 	void run();
 	void stop();
 
-
+	// Static signal handler wrapper
+	static Server* instance;
+	static void staticSiganlHandler(int sig);
 };
 
 #endif
