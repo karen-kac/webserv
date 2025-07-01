@@ -10,6 +10,8 @@ private:
 	std::vector<int> _serverSockets;
 	bool _running;
 
+	void signalHandler(int sig);
+
 public:
 	Server();
 	Server(const std::string& configPath);
